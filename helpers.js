@@ -1,20 +1,12 @@
-const { user, port, host } = require('./config');
-
 function getPathProperty(path) {
     return path.replace(/\\/g, '');
 }
 
-function getScpOptions({ file, host, port, path }) {
-    return {
-        user,
-        port,
-        host,
-        file,
-        path,
-    }
+function getRelativePath(path, base1, base2) {
+    return base2.concat(path.slice(base1.length));
 }
 
 module.exports = {
     getPathProperty,
-    getScpOptions
+    getRelativePath,
 }
