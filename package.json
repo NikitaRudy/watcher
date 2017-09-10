@@ -9,8 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "chokidar": "^1.7.0",
-    "scp": "0.0.3",
-    "shelljs": "^0.7.8"
+    "chokidar": "^1.7.0"
   }
 }

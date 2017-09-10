@@ -1,8 +1,10 @@
-const scp = require('./mockscp');
 const fs = require('fs');
+const { exec } = require('child_process');
 
+const scp = require('./scp');
 const { user, port, host } = require('./config');
 const { warn, info, log } = require('./logger');
+const { getDeleteCmd } = require('./helpers');
 
 const scpDefaults = {
 	user,
@@ -39,7 +41,27 @@ function readFile(filePath) {
 	})
 }
 
+function deleteFile(path)  {
+	return new Promise((resolve, reject) => {
+		const command = [
+			'ssh',
+			`${user}@${host}`,
+			getDeleteCmd(path),
+		];
+
+		exec(command.join(' '), (err, stdout, stderr) => {
+			if (err) {
+				reject(err);
+			} else {
+				info(`THE FILE OR DIRECTORY AT PATH: ${path} WAS REMOVED`);
+				resolve(stdout);
+			}
+		});
+	});
+}
+
 module.exports = {
     sendFile,
     readFile,
+    deleteFile,
 }
