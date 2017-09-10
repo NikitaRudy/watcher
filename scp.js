@@ -1,9 +1,11 @@
 const { exec } = require('child_process');
+const { getCmd } = requre('./helpers');
+
 
 function send(options, cb) {
 	const { file, path, port, host, user } = options;
 
-	const command = [
+	const command = getCmd([
 		'scp',
 		'-r',
 		'-P',
@@ -11,9 +13,9 @@ function send(options, cb) {
 		'-o "ControlMaster no"',
 		file,
 		`${user}@${host}:${path}`,
-	];
+	]);
 
-	exec(command.join(' '), (err, stdout, stderr) => {
+	exec(command, (err, stdout, stderr) => {
 		if (cb) {
 			cb(err, stdout, stderr);
 		} else {

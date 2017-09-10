@@ -4,7 +4,7 @@ const { exec } = require('child_process');
 const scp = require('./scp');
 const { user, port, host } = require('./config');
 const { warn, info, log } = require('./logger');
-const { getDeleteCmd } = require('./helpers');
+const { getDeleteCmd, getCmd } = require('./helpers');
 
 const scpDefaults = {
 	user,
@@ -41,15 +41,33 @@ function readFile(filePath) {
 	})
 }
 
-function deleteFile(path)  {
+function remountFs() {
 	return new Promise((resolve, reject) => {
-		const command = [
+		const command = getCmd([
+			'ssh',
+			`${user}@${host}`,
+			'"mount -o remount,rw /"',
+		]);
+
+		exec(command, (err, stdout, sdterr) => {
+			if (err) {
+				reject(err);
+			} else {
+				resolve(stdout);
+			}
+		});
+	});
+}
+
+function deleteFile(path) {
+	return new Promise((resolve, reject) => {
+		const command = getCmd([
 			'ssh',
 			`${user}@${host}`,
 			getDeleteCmd(path),
-		];
+		]);
 
-		exec(command.join(' '), (err, stdout, stderr) => {
+		exec(command, (err, stdout, stderr) => {
 			if (err) {
 				reject(err);
 			} else {
@@ -64,4 +82,5 @@ module.exports = {
     sendFile,
     readFile,
     deleteFile,
+    remountFs,
 }

@@ -6,7 +6,12 @@ function getDeleteCmd(path) {
 	return `"rm -rf ${path}"`;
 }
 
+function getCmd(cmdParts) {
+	return cmdParts.join(' ');
+}
+
 module.exports = {
     getRelativePath,
     getDeleteCmd,
+    getCmd,
 }
