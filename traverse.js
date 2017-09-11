@@ -3,6 +3,7 @@ const fs = require('fs');
 const { info, warn, log } = require('./logger');
 
 function traverse(root) {
+    info('Traversing the directory...');
     const hash = new Map();
 
     const queue = [];
@@ -18,7 +19,7 @@ function traverse(root) {
             const hashPath = path.join(currentDir, cur);
             const stats = fs.statSync(hashPath);
             const isDir = stats.isDirectory();
-    
+
             if (isDir) {
                 queue.push(hashPath);
             } else {

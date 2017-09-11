@@ -1,7 +1,10 @@
 const { sendFile, readFile, deleteFile } = require('./services');
-const { getRelativePath } = require('./helpers');
+const { getAppropriatePath } = require('./helpers');
 const { dir_base_path, stb_base_path } = require('./config');
-const { warn } = require('./logger');
+const { warn, info } = require('./logger');
+const { traverse } = require('./traverse');
+
+const directoryHash = traverse(dir_base_path);
 
 function onChange(filePath) {
     const prevState = directoryHash.get(filePath);
@@ -11,19 +14,22 @@ function onChange(filePath) {
             if (file !== prevState) {
                 directoryHash.set(filePath, file);
 
-                const stbPath = getRelativePath(filePath, dir_base_path, stb_base_path);
+                const stbPath = getAppropriatePath(filePath, dir_base_path, stb_base_path);
 
-                return sendFile(filePath, stbPath);
+                return sendFile(filePath, stbPath).catch(warn.bind(null, 'SEND FILE'));
             }
         })
-        .catch(warn);
+        .catch(warn.bind(null, 'readFile'));
 }
 
 function onUnlink(filePath) {
-    deleteFile(filePath)
-        .catch(warn);
+    const stbPath = getAppropriatePath(filePath, dir_base_path, stb_base_path);
+
+    deleteFile(stbPath)
+        .catch(warn.bind(null, 'deleteFile'));
 }
 
 module.exports = {
 	onChange,
+    onUnlink,
 }

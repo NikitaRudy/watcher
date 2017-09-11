@@ -1,5 +1,6 @@
 const { exec } = require('child_process');
-const { getCmd } = requre('./helpers');
+const { getCmd, convertPath } = require('./helpers');
+const { info } = require('./logger');
 
 
 function send(options, cb) {
@@ -10,9 +11,8 @@ function send(options, cb) {
 		'-r',
 		'-P',
 		port,
-		'-o "ControlMaster no"',
-		file,
-		`${user}@${host}:${path}`,
+		convertPath(file),
+		`${user}@${host}:${convertPath(path)}`,
 	]);
 
 	exec(command, (err, stdout, stderr) => {
