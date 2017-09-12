@@ -1,6 +1,6 @@
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 const { getCmd, convertPath } = require('./helpers');
-const { info } = require('./logger');
+const { info, log, warn } = require('./logger');
 
 
 function send(options, cb) {
@@ -15,11 +15,22 @@ function send(options, cb) {
 		`${user}@${host}:${convertPath(path)}`,
 	]);
 
-	exec(command, (err, stdout, stderr) => {
+	// exec(command, (err, stdout, stderr) => {
+	// 	if (cb) {
+	// 		cb(err, stdout, stderr);
+	// 	} else {
+	// 		if (err) {
+	// 			throw new Error(err);
+	// 		}
+	// 	}
+	// });
+
+	const scp = spawn('scp', ['-r', '-P', port, convertPath(file), `${user}@${host}:${convertPath(path)}`], { stdio: 'inherit' });
+	scp.on('close', (code) => {
 		if (cb) {
-			cb(err, stdout, stderr);
+			cb(code);
 		} else {
-			if (err) {
+			if (code !== '0') {
 				throw new Error(err);
 			}
 		}
