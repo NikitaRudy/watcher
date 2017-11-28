@@ -15,17 +15,15 @@ function onChange(filePath) {
     const isDirectory = stats.isDirectory();
 
     if (isDirectory) {
-        const dirStbPath = flow(getAppropriatePath, convertPath)(filePath, dir_base_path, stb_base_path);
-        console.log(dirStbPath);
+        const dirStbPath = getAppropriatePath(convertPath(filePath), dir_base_path, stb_base_path);
         makeDirectory(dirStbPath);
     } else {
-        readFile()
+        readFile(filePath)
             .then((file) => {
                 if (file !== prevState) {
                     directoryHash.set(filePath, file);
 
-                    const stbPath = flow(getAppropriatePath, convertPath)(filePath, dir_base_path, stb_base_path);
-                    console.log(stbPath);
+                    const stbPath = getAppropriatePath(convertPath(filePath), dir_base_path, stb_base_path);
 
                     sendFile(filePath, stbPath).catch(warn.bind(null, 'SEND FILE'));
                 }
@@ -35,9 +33,7 @@ function onChange(filePath) {
 }
 
 function onUnlink(filePath) {
-    const stbPath = getAppropriatePath(filePath, dir_base_path, stb_base_path);
-
-    deleteFile(stbPath)
+    deleteFile(filePath)
         .catch((e) => {
             warn('deleteFile', e && e.stack);
         });
