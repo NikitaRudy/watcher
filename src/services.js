@@ -1,9 +1,8 @@
 const fs = require('fs');
 const { exec } = require('child_process');
-const path = require('path');
 
 const scp = require('./scpcmd');
-const { dir_base_path, stb_base_path } = require('./config');
+const { dir_base_path } = require('./config');
 const { user, port, host } = require('./config');
 const { info, error } = require('./logger');
 const { getDeleteCmd, getCmd, convertPath, flow, getRelativePath } = require('./helpers');

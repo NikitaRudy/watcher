@@ -1,7 +1,8 @@
 const fs = require('fs');
+const path = require('path');
 
 const { sendFile, readFile, deleteFile, makeDirectory } = require('./services');
-const { getAppropriatePath, convertPath, flow } = require('./helpers');
+const { getAppropriatePath, convertPath } = require('./helpers');
 const { dir_base_path, stb_base_path } = require('./config');
 const { warn } = require('./logger');
 const { traverse } = require('./traverse');
@@ -44,7 +45,7 @@ function onAddDir(dirPath) {
 
     const stbPath = getAppropriatePath(dirPath, dir_base_path, stb_base_path);
 
-    return sendFile(dirPath, stbPath);
+    return sendFile(path.join(dirPath, '/.'), stbPath);
 }
 
 module.exports = {
