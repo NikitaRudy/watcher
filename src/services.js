@@ -1,11 +1,13 @@
 const fs = require('fs');
-const { exec } = require('child_process');
+const { promisify } = require('util');
 
 const scp = require('./scpcmd');
-const { dir_base_path } = require('./config');
+const { dirBasePath } = require('./config');
 const { user, port, host } = require('./config');
-const { info, error } = require('./logger');
-const { getDeleteCmd, getCmd, convertPath, flow, getRelativePath } = require('./helpers');
+const { info } = require('./logger');
+const { getDeleteCmd, getCmd, convertPath, flow, getRelativePath, getCmdExucutor } = require('./helpers');
+
+const read = promisify(fs.readFile);
 
 const scpDefaults = {
     user,
@@ -23,7 +25,7 @@ function sendFile(file, path) {
             if (err) {
                 reject(err);
             } else {
-                info(getRelativePath(convertPath(file), dir_base_path), 'WAS TRANSFERED');
+                info(getRelativePath(convertPath(file), dirBasePath), 'WAS TRANSFERED');
                 resolve(stdout);
             }
         });
@@ -31,91 +33,98 @@ function sendFile(file, path) {
 }
 
 function readFile(filePath) {
-    return new Promise((resolve, reject) => {
-        fs.readFile(filePath, 'utf-8', (err, file) => (err ? reject(err) : resolve(file)));
-    });
+    return read(filePath, 'utf-8');
 }
 
-function remountFs() {
-    return new Promise((resolve, reject) => {
-        const command = getCmd([
-            'ssh',
-            `${user}@${host}`,
-            '"mount -o remount,rw /"',
-        ]);
+const remountFs = getCmdExucutor(
+    getCmd([
+        'ssh',
+        `${user}@${host}`,
+        '"mount -o remount,rw /"',
+    ]),
+    'stb filesystem was remounted',
+    'remountFs',
+);
 
-        exec(command, (err, stdout, stderr) => {
-            if (err) {
-                reject(err, stderr);
-            } else {
-                info('stb filesystem was remounted');
-                resolve(stdout);
-            }
-        });
-    }).catch(e => error('remountFs', e && e.stack));
-}
+const ipTables = getCmdExucutor(
+    getCmd([
+        'ssh',
+        `${user}@${host}`,
+        '"/usr/sbin/iptables -F"',
+    ]),
+    'iptables -F',
+    'ipTables',
+);
 
-function deleteFile(path) {
-    return new Promise((resolve, reject) => {
-        const command = getCmd([
-            'ssh',
-            `${user}@${host}`,
-            flow(convertPath, getDeleteCmd)(path),
-        ]);
+const deleteFile = getCmdExucutor(
+    filePath => getCmd([
+        'ssh',
+        `${user}@${host}`,
+        flow(convertPath, getDeleteCmd)(filePath),
+    ]),
+    filePath => `${getRelativePath(convertPath(filePath), dirBasePath)} WAS REMOVED`,
+    'deleteFile',
+);
 
-        exec(command, (err, stdout) => {
-            if (err) {
-                reject(err);
-            } else {
-                info(getRelativePath(convertPath(path), dir_base_path), 'WAS REMOVED');
-                resolve(stdout);
-            }
-        });
-    }).catch(e => error('deleteFile', e && e.stack));
-}
-
-
-function restartStbApp() {
-    return new Promise((resolve, reject) => {
-        const command = getCmd([
-            'ssh',
-            `${user}@${host}`,
-            '"killall -9 node"',
-        ]);
-
-        exec(command, (err, stdout) => {
-            if (err) {
-                reject(err);
-            } else {
-                info('restarting jsapp...');
-                resolve(stdout);
-            }
-        });
-    }).catch(e => error('restartStbApp', e && e.stack));
-}
+const restartStbApp = getCmdExucutor(
+    getCmd([
+        'ssh',
+        `${user}@${host}`,
+        '"systemctl restart jsapp"',
+    ]),
+    'restarting jsapp...',
+    'restartStbApp',
+);
 
 
-function makeDirectory(dirPath) {
-    return new Promise((resolve, reject) => {
-        const command = getCmd([
-            'ssh',
-            `${user}@${host}`,
-            `mkdir ${dirPath}`,
-        ]);
+const makeDirectory = getCmdExucutor(
+    dirPath => getCmd([
+        'ssh',
+        `${user}@${host}`,
+        `mkdir ${dirPath}`,
+    ]),
+    dirPath => `${dirPath} DIRECTORY WAS CREATED`,
+    'makeDirectory',
+);
 
-        exec(command, (err, stdout) => {
-            if (err) {
-                reject(err);
-            } else {
-                info(dirPath, 'DIRECTORY WAS CREATED');
-                resolve(stdout);
-            }
-        });
-    }).catch(e => error('makeDirectory', e && e.stack));
-}
+const stopJsapp = getCmdExucutor(
+    getCmd([
+        'ssh',
+        `${user}@${host}`,
+        '"systemctl stop jsapp"',
+    ]),
+    'JsApp was stopped',
+    'stopJsApp'
+);
+
+
+// function mountSecureStorageDir() {
+//     return new Promise((resolve, reject) => {
+//         const stbBasePathConverted = flow(path.join, convertPath)(stbBasePath, 'src');
+//         const stbMountPathConverted = convertPath(stbMountPath);
+//         const stbRunshPathConverted = flow(path.join, convertPath)(stbMountPath, 'run.sh');
+
+//         const command = getCmd([
+//             'ssh',
+//             `${user}@${host}`,
+//             `umount ${stbMountPath}; mount --bind ${stbBasePathConverted} ${stbMountPathConverted}; chmod +x ${stbRunshPathConverted}`,
+//         ]);
+
+//         exec(command, (err, stdout) => {
+//             if (err) {
+//                 reject(err);
+//             } else {
+//                 info(stbMountPath, 'WAS MOUNTED');
+//                 resolve(stdout);
+//             }
+//         });
+//     });
+// }
 
 module.exports = {
     sendFile,
+    stopJsapp,
+    ipTables,
     readFile,
     deleteFile,
     remountFs,

@@ -9,8 +9,9 @@ const configExample = {
     user: '',
     port: '',
     host: '',
-    stb_base_path: '',
-    dir_base_path: '',
+    stbMountPath: '',
+    stbBasePath: '',
+    dirBasePath: '',
 };
 
 module.exports = configExample;

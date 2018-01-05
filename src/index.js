@@ -1,16 +1,20 @@
 const chokidar = require('chokidar');
+const path = require('path');
 
 const { error } = require('./logger');
 const { onChange, onUnlink, onAddDir } = require('./watcher.callbacks');
-const { dir_base_path } = require('./config');
-const { remountFs, restartStbApp } = require('./services');
+const { dirBasePath, stbBasePath } = require('./config');
+const { remountFs, mountSecureStorageDir, deleteFile, ipTables, stopJsapp } = require('./services');
 
-const watcher = chokidar.watch(dir_base_path);
+const watcher = chokidar.watch(dirBasePath);
 
 remountFs()
-    .then(() => onAddDir(dir_base_path))
-    .then(restartStbApp)
+    .then(() => ipTables())
+    .then(() => deleteFile(path.join(stbBasePath, 'src')))
+    .then(() => onAddDir(dirBasePath))
+    // .then(() => mountSecureStorageDir())
     .then(() => {
+        stopJsapp();
         watcher
             .on('error', error.bind(null, 'wathcher error'))
             .on('change', onChange)

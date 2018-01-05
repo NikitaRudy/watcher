@@ -3,7 +3,7 @@ const path = require('path');
 
 const { sendFile, readFile, deleteFile, makeDirectory } = require('./services');
 const { getAppropriatePath, convertPath } = require('./helpers');
-const { dir_base_path, stb_base_path } = require('./config');
+const { dirBasePath, stbBasePath } = require('./config');
 const { warn } = require('./logger');
 const { traverse } = require('./traverse');
 
@@ -16,7 +16,7 @@ function onChange(filePath) {
     const isDirectory = stats.isDirectory();
 
     if (isDirectory) {
-        const dirStbPath = getAppropriatePath(convertPath(filePath), dir_base_path, stb_base_path);
+        const dirStbPath = getAppropriatePath(convertPath(filePath), dirBasePath, stbBasePath);
         makeDirectory(dirStbPath);
     } else {
         readFile(filePath)
@@ -24,7 +24,7 @@ function onChange(filePath) {
                 if (file !== prevState) {
                     directoryHash.set(filePath, file);
 
-                    const stbPath = getAppropriatePath(convertPath(filePath), dir_base_path, stb_base_path);
+                    const stbPath = getAppropriatePath(convertPath(filePath), dirBasePath, stbBasePath);
 
                     sendFile(filePath, stbPath).catch(warn.bind(null, 'SEND FILE'));
                 }
@@ -43,9 +43,9 @@ function onUnlink(filePath) {
 function onAddDir(dirPath) {
     traverse(dirPath, directoryHash);
 
-    const stbPath = getAppropriatePath(dirPath, dir_base_path, stb_base_path);
+    const stbPath = getAppropriatePath(dirPath, dirBasePath, stbBasePath);
 
-    return sendFile(path.join(dirPath, '/.'), stbPath);
+    return sendFile(path.join(dirPath, '/.'), '/mnt/secure_storage');
 }
 
 module.exports = {

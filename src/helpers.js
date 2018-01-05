@@ -1,3 +1,9 @@
+const { exec: execCb } = require('child_process');
+const { info, error } = require('./logger');
+const { promisify } = require('util');
+
+const exec = promisify(execCb);
+
 function getAppropriatePath(path, base1, base2) {
     return base2.concat(path.slice(base1.length));
 }
@@ -24,6 +30,25 @@ function flow(...funcs) {
     };
 }
 
+function getCmdExucutor(cmd, logMessage, funcName) {
+    return function (...args) {
+        const command = typeof cmd === 'function' ? cmd(...args) : cmd;
+
+        return exec(command)
+            .then((data) => {
+                if (Array.isArray(logMessage)) {
+                    info(...logMessage);
+                } else if (typeof logMessage === 'function') {
+                    info(logMessage(...args));
+                } else {
+                    info(logMessage);
+                }
+                return data;
+            })
+            .catch(e => error(funcName, e && e.stack));
+    };
+}
+
 module.exports = {
     flow,
     getCmd,
@@ -31,4 +56,5 @@ module.exports = {
     getDeleteCmd,
     getRelativePath,
     getAppropriatePath,
+    getCmdExucutor,
 };
