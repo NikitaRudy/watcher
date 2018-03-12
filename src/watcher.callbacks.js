@@ -42,10 +42,7 @@ function onUnlink(filePath) {
 
 function onAddDir(dirPath) {
     traverse(dirPath, directoryHash);
-
-    const stbPath = getAppropriatePath(dirPath, dirBasePath, stbBasePath);
-
-    return sendFile(path.join(dirPath, '/.'), '/mnt/secure_storage');
+    return sendFile(path.join(dirPath, '/*'), stbBasePath);
 }
 
 module.exports = {

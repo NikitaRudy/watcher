@@ -9,7 +9,6 @@ const configExample = {
     user: '',
     port: '',
     host: '',
-    stbMountPath: '',
     stbBasePath: '',
     dirBasePath: '',
 };

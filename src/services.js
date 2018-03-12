@@ -97,30 +97,6 @@ const stopJsapp = getCmdExucutor(
     'stopJsApp'
 );
 
-
-// function mountSecureStorageDir() {
-//     return new Promise((resolve, reject) => {
-//         const stbBasePathConverted = flow(path.join, convertPath)(stbBasePath, 'src');
-//         const stbMountPathConverted = convertPath(stbMountPath);
-//         const stbRunshPathConverted = flow(path.join, convertPath)(stbMountPath, 'run.sh');
-
-//         const command = getCmd([
-//             'ssh',
-//             `${user}@${host}`,
-//             `umount ${stbMountPath}; mount --bind ${stbBasePathConverted} ${stbMountPathConverted}; chmod +x ${stbRunshPathConverted}`,
-//         ]);
-
-//         exec(command, (err, stdout) => {
-//             if (err) {
-//                 reject(err);
-//             } else {
-//                 info(stbMountPath, 'WAS MOUNTED');
-//                 resolve(stdout);
-//             }
-//         });
-//     });
-// }
-
 module.exports = {
     sendFile,
     stopJsapp,

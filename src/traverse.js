@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const { ignore } = require('./config');
 const { info } = require('./logger');
 
 function traverse(root, hash) {
@@ -11,6 +12,7 @@ function traverse(root, hash) {
 
     while (queue.length > 0) {
         const currentDir = queue.shift();
+        if (currentDir.match(ignore)) break;
 
         const files = fs.readdirSync(currentDir);
 
